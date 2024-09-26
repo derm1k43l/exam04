@@ -3,19 +3,15 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
-// 1. err - print error msg in fd 2.
-// 2. cd - 
-// 3. set pipe
-// 4. exec
-// 5. main
-
+// print string to stderr
 void	err(char *s)
 {
 	while (*s)
 		write(2, s++, 1);
 }
 
-int cd(char **av, int i)
+// chage dir
+int	cd(char **av, int i)
 {
 	if (i != 2)
 		return err("error: cd: bad arguments\n"), 1;
@@ -24,17 +20,24 @@ int cd(char **av, int i)
 	return 0;
 }
 
+// Function to set pipe
+// end == 1 sets stdout to act as write end of our pipe
+// end == 0 sets stdin to ac as read end of our pipe
 void set_pipe(int has_pipe, int *fd, int end)
 {
 	if (has_pipe && (dup2(fd[end], end) == -1 || close(fd[0]) == -1 || close(fd[1]) == -1 ))
 		err("error: fatal\n"), exit(1);
 }
 
+// execute a comand
 int exec(char **av, int i, char **envp)
 {
-	int has_pipe, fd[2], pid, status;
-	has_pipe = av[i] && !strcmp(av[i], "|");
+	int has_pipe; 
+	int fd[2];
+	int pid; 
+	int status;
 
+	has_pipe = av[i] && !strcmp(av[i], "|");
 	if (!has_pipe && !strcmp(*av, "cd"))
 		return cd(av, i);
 	if (has_pipe && pipe(fd) == -1)
